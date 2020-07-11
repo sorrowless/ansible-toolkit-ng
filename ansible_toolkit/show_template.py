@@ -19,4 +19,4 @@ def show_template(host, path, gather_facts=True,
         setup_cache=setup_cache,
     )
     host_vars = runner.get_inject_vars(host)
-    print template_from_file('.', path, host_vars)
+    print(template_from_file('.', path, host_vars))

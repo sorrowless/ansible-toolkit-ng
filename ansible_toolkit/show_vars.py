@@ -3,7 +3,8 @@
 from ansible.runner import Runner
 from ansible.utils import combine_vars, template
 
-from utils import green, red, get_vault_password, get_inventory
+from utils import green, red, get_inventory
+# from utils import get_vault_password
 
 
 def show_diff(old, new):
@@ -60,7 +61,7 @@ def get_inject_vars(self, host):
     for name, value in to_merge:
         old_inject = inject
         inject = combine_vars(inject, value)
-        print name
+        print(name)
         show_diff(old_inject, inject)
 
     return inject

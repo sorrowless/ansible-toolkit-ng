@@ -4,9 +4,10 @@ import difflib
 import re
 import subprocess
 
-from exceptions import MalformedGitDiff
+from .exceptions import MalformedGitDiff
 from itertools import islice
-from utils import get_vault_password, green, red, cyan, intense
+from .utils import get_vault_password, green, red, cyan, intense
+from ansible.parsing.vault import is_encrypted
 
 from . import DaoImpl
 
@@ -36,6 +37,14 @@ def get_old_filename(diff_part):
     """
     Returns the filename for the original file that was changed in a diff part.
     """
+    # Check for moved files first
+    r = re.compile(r'^similarity index 100', re.MULTILINE)
+    match = r.search(diff_part)
+    if match is not None:
+        # It means file was moved
+        return '/dev/null'
+
+    # Check for changed files now
     regexps = (
         # e.g. "+++ a/foo/bar"
         r'^--- a/(.*)',
@@ -51,7 +60,10 @@ def get_old_filename(diff_part):
                            "Examined diff part: {}".format(diff_part))
 
 
+
 def get_old_contents(sha, filename):
+    if filename == '/dev/null':
+        return b''
     return subprocess.check_output(['git', 'show', sha, '--', filename])
 
 
@@ -59,6 +71,13 @@ def get_new_filename(diff_part):
     """
     Returns the filename for the updated file in a diff part.
     """
+    # Check for moved files first
+    r = re.compile(r'^similarity index 100', re.MULTILINE)
+    match = r.search(diff_part)
+    if match is not None:
+        # It means file was moved
+        return '/dev/null'
+
     regexps = (
         # e.g. "+++ b/foo/bar"
         r'^\+\+\+ b/(.*)',
@@ -124,9 +143,9 @@ def decrypt_diff(diff_part, password_file=None):
     """
     vault = VaultLib(get_vault_password(password_file))
     old_contents, new_contents = get_contents(diff_part)
-    if vault.is_encrypted(old_contents):
+    if is_encrypted(old_contents):
         old_contents = vault.decrypt(old_contents)
-    if vault.is_encrypted(new_contents):
+    if is_encrypted(new_contents):
         new_contents = vault.decrypt(new_contents)
     return old_contents, new_contents
 
@@ -134,7 +153,7 @@ def decrypt_diff(diff_part, password_file=None):
 def show_unencrypted_diff(diff_part, password_file=None):
     intense(get_head(diff_part).strip())
     old, new = decrypt_diff(diff_part, password_file)
-    diff = difflib.unified_diff(old.split('\n'), new.split('\n'), lineterm='')
+    diff = difflib.unified_diff(old.decode('utf-8').split('\n'), new.decode('utf-8').split('\n'), lineterm='')
     # ... we'll take the git filenames from git's diff output rather than
     # ... difflib
     for line in islice(diff, 2, None):
@@ -145,7 +164,7 @@ def show_unencrypted_diff(diff_part, password_file=None):
         elif line.startswith('@@'):
             cyan(line)
         else:
-            print line
+            print(line)
 
 
 def show_unencrypted_diffs(git_diff_output, password_file=None):

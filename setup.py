@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import pip.download
-
-from pip.req import parse_requirements
+import pathlib
+import pkg_resources
 
 from setuptools import setup
 
-setup(name='ansible-toolkit',
-      version='1.3.2',
+with pathlib.Path('requirements.txt').open() as requirements_txt:
+    install_requires = [
+        str(requirement)
+        for requirement
+        in pkg_resources.parse_requirements(requirements_txt)
+    ]
+
+setup(name='ansible-toolkit-ng',
+      version='2.0.0',
       description='The missing Ansible tools',
-      url='http://github.com/dellis23/ansible-toolkit',
-      author='Daniel Ellis',
-      author_email='ellisd23@gmail.com',
+      url='http://github.com/sorrowless/ansible-toolkit-ng',
+      author='Stan Bogatkin',
+      author_email='stabog.tmb@gmail.com',
       license='GPLv3',
-      install_requires=[
-            str(pkg.req) for pkg in parse_requirements(
-                  'requirements.txt',
-                  session=pip.download.PipSession())],
-      tests_require=[
-          str(pkg.req) for pkg in parse_requirements(
-                  'test-requirements.txt',
-                  session=pip.download.PipSession())],
+      install_requires=install_requires,
       packages=['ansible_toolkit'],
       scripts=[
           'bin/atk-git-diff',

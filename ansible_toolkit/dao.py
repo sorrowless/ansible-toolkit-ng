@@ -44,7 +44,7 @@ class Ansible2(AnsibleDao):
         from ansible.cli import CLI
         from ansible.parsing.dataloader import DataLoader
 
-        return CLI.read_vault_password_file(vault_password_file, DataLoader())
+        return CLI.setup_vault_secrets(loader=DataLoader(), vault_ids=ansible.constants.DEFAULT_VAULT_IDENTITY_LIST)
 
 
 class Ansible1(AnsibleDao):

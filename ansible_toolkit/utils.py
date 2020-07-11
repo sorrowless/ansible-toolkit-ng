@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import ConfigParser
 import errno
 import os
 
-from ansible.inventory import Inventory
+from configparser import ConfigParser
+from ansible.inventory.manager import InventoryManager
 
 from . import DaoImpl
 
-config = ConfigParser.ConfigParser()
+config = ConfigParser()
 
 config.read([os.path.expanduser('~/.atk')])
 
@@ -24,23 +24,23 @@ ENDC = '\033[0m'
 
 
 def green(text):
-    print GREEN + text + ENDC
+    print(GREEN + text + ENDC)
 
 
 def red(text):
-    print RED + text + ENDC
+    print(RED + text + ENDC)
 
 
 def yellow(text):
-    print YELLOW + text + ENDC
+    print(YELLOW + text + ENDC)
 
 
 def cyan(text):
-    print CYAN + text + ENDC
+    print(CYAN + text + ENDC)
 
 
 def intense(text):
-    print INTENSE + text + ENDC
+    print(INTENSE + text + ENDC)
 
 
 # Vault Password
@@ -64,7 +64,7 @@ def get_inventory(inventory_path=None, vault_password_path=None):
         except ConfigParser.NoSectionError:
             inventory_path = 'inventory'
     vault_password = get_vault_password(vault_password_path)
-    return Inventory(inventory_path, vault_password=vault_password)
+    return InventoryManager(inventory_path, vault_password=vault_password)
 
 
 # Filesystem Tools
